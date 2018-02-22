@@ -5,12 +5,18 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.bilal.movies.R;
 import com.bilal.movies.models.Movie;
+import com.bilal.movies.utils.MoviesAPIContract;
+import com.squareup.picasso.Picasso;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 /**
  * Created by Bilal on 21/02/2018.
@@ -34,7 +40,8 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Mo
 
     @Override
     public void onBindViewHolder(MovieHolder holder, int position) {
-
+        Picasso.with(context).load(MoviesAPIContract.POSTERS_BASE_URL + movies.get(position).getThumbUrl())
+                .placeholder(R.drawable.movie_placeholder).into(holder.imageView);
     }
 
     @Override
@@ -43,9 +50,12 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Mo
     }
 
     class MovieHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.im_movie_poster)
+        ImageView imageView;
 
         MovieHolder(View itemView) {
             super(itemView);
+            ButterKnife.bind(this, itemView);
         }
     }
 }

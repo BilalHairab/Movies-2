@@ -1,7 +1,7 @@
 package com.bilal.movies.utils;
 
 /**
- * Created by Bilal-Laptop on 22/02/2018.
+ * Created by Bilal on 22/02/2018.
  */
 
 public class MoviesAPIContract {

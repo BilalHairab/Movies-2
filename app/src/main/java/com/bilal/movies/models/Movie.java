@@ -5,15 +5,29 @@ package com.bilal.movies.models;
  */
 
 public class Movie {
-    private String title, thumbUrl, overView, releaseDate;
+    private String id, title, thumbUrl, overView, releaseDate;
     private float voteAvg;
 
-    public Movie(String title, String thumbUrl, String overView, String releaseDate, float voteAvg) {
+    public Movie(String id, String thumbUrl) {
+        this.id = id;
+        this.thumbUrl = thumbUrl;
+    }
+
+    public Movie(String id, String title, String thumbUrl, String overView, String releaseDate, float voteAvg) {
+        this.id = id;
         this.title = title;
         this.thumbUrl = thumbUrl;
         this.overView = overView;
         this.releaseDate = releaseDate;
         this.voteAvg = voteAvg;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getTitle() {
