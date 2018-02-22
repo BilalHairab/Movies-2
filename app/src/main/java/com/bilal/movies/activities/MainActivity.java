@@ -11,7 +11,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -60,7 +59,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     void loadMovies() {
-        Log.e("Movies", "dfdfd");
         LoaderManager loaderManager = getSupportLoaderManager();
         Loader<String> loader = loaderManager.getLoader(LOADER_ID);
         if (loader == null)
@@ -76,18 +74,15 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Override
             protected void onStartLoading() {
                 super.onStartLoading();
-                Log.e("MoviesStart", "start");
             }
 
             @Nullable
             @Override
             public String loadInBackground() {
-                Log.e("MoviesStart", "back");
                 Uri uri = Uri.parse(MoviesAPIContract.MOVIES_BASE_URL + sortType).buildUpon()
                         .appendQueryParameter(MoviesAPIContract.API_KEY, MoviesAPIContract.API_KEY_VALUE).build();
                 try {
                     URL url = new URL(uri.toString());
-                    Log.e("MoviesUrl", url.toString());
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     InputStream inputStream = connection.getInputStream();
                     Scanner scanner = new Scanner(inputStream);
@@ -97,7 +92,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                         result += scanner.next();
                     return result;
                 } catch (IOException e) {
-                    Log.e("MoviesError", e.getMessage());
                     e.printStackTrace();
                 }
                 return null;
