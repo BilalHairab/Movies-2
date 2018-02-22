@@ -31,7 +31,7 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Mo
         @Override
         public void onMovieClick(int position) {
             Intent toDetailActivity = new Intent(context, MovieDetailActivity.class);
-            toDetailActivity.putExtra(MoviesAPIContract.ID, movies.get(position).getId());
+            toDetailActivity.putExtra(MoviesAPIContract.ID, movies.get(position));
             context.startActivity(toDetailActivity);
         }
     };

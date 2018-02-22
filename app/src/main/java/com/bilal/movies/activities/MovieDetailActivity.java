@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import com.bilal.movies.R;
+import com.bilal.movies.models.Movie;
 import com.bilal.movies.utils.MoviesAPIContract;
 
 public class MovieDetailActivity extends AppCompatActivity {
@@ -13,6 +14,11 @@ public class MovieDetailActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_movie_detail);
-        Log.e("Movies", getIntent().getExtras().getString(MoviesAPIContract.ID));
+        Movie currentMovie = getIntent().getExtras().getParcelable(MoviesAPIContract.ID);
+        setTitle(currentMovie.getTitle());
+        Log.e("Movies", currentMovie.getOverView());
+        Log.e("Movies", currentMovie.getVoteAvg() + "");
+        Log.e("Movies", currentMovie.getId());
+        Log.e("Movies", currentMovie.getReleaseDate());
     }
 }
