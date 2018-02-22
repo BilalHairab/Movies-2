@@ -11,5 +11,6 @@ public class MoviesAPIContract {
     public final static String API_KEY_VALUE = "80020e258097bcd50e50e6eab73fbc2b";
     public final static String TOP_RATED = "top_rated";
     public final static String POPULAR = "popular";
+    public final static String ID = "id";
 
 }

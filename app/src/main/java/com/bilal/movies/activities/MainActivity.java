@@ -1,4 +1,4 @@
-package com.bilal.movies;
+package com.bilal.movies.activities;
 
 import android.annotation.SuppressLint;
 import android.net.Uri;
@@ -16,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.bilal.movies.R;
 import com.bilal.movies.adapters.MainMoviesAdapter;
 import com.bilal.movies.models.Movie;
 import com.bilal.movies.utils.JsonUtils;
