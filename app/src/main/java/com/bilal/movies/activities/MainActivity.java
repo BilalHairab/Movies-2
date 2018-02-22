@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
+        setTitle(R.string.sort_popular);
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -114,10 +115,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_sort_popular:
+                setTitle(R.string.sort_popular);
                 sortType = MoviesAPIContract.POPULAR;
                 loadMovies();
                 break;
             case R.id.action_sort_rated:
+                setTitle(R.string.sort_rated);
                 sortType = MoviesAPIContract.TOP_RATED;
                 loadMovies();
                 break;

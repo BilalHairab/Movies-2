@@ -1,7 +1,8 @@
 <resources>
-    <string name="app_name">Movies 1</string>
+    <string name="app_name">Movies - Stage 1</string>
     <string name="movie_poster_desc">Movie poster</string>
     <string name="error_loading">Something went wrong, please check your internet connection and try again</string>
     <string name="sort_popular">Most popular</string>
     <string name="sort_rated">Highest rate</string>
+    <string name="released">Released: </string>
 </resources>
