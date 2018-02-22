@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bilal.movies.adapters.MainMoviesAdapter;
@@ -102,6 +104,29 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main_movies_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_sort_popular:
+                sortType = MoviesAPIContract.POPULAR;
+                loadMovies();
+                break;
+            case R.id.action_sort_rated:
+                sortType = MoviesAPIContract.TOP_RATED;
+                loadMovies();
+                break;
+            default:
+                break;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public void onLoadFinished(Loader<String> loader, String data) {
         if (swipeRefreshLayout.isRefreshing())
             swipeRefreshLayout.setRefreshing(false);
@@ -112,7 +137,6 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
         try {
             List<Movie> movieList = JsonUtils.jsonString2MoviesList(data);
             GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
-//            StaggeredGridLayoutManager layoutManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
             MainMoviesAdapter adapter = new MainMoviesAdapter(movieList);
             recyclerView.setLayoutManager(layoutManager);
             recyclerView.setAdapter(adapter);
