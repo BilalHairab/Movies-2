@@ -42,10 +42,10 @@ public class MovieDetailActivity extends AppCompatActivity {
         super.onStart();
         if (movie != null) {
             setTitle(movie.getTitle());
-            tvReleased.append(movie.getReleaseDate());
-            tvRating.setText(movie.getVoteAvg() + "");
-            tvOverview.setText(movie.getOverView());
-            Picasso.with(this).load(MoviesAPIContract.POSTERS_BASE_URL + movie.getThumbUrl())
+            tvReleased.append(movie.getRelease_date());
+            tvRating.setText(String.valueOf(movie.getVote_average()));
+            tvOverview.setText(movie.getOverview());
+            Picasso.with(this).load(MoviesAPIContract.POSTERS_BASE_URL + movie.getPoster_path())
                     .placeholder(R.drawable.movie_placeholder).into(poster);
         }
     }

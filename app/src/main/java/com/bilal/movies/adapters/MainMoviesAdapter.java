@@ -2,6 +2,7 @@ package com.bilal.movies.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,8 +41,9 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Mo
         this.movies = movies;
     }
 
+    @NonNull
     @Override
-    public MovieHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public MovieHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
         LayoutInflater inflater = LayoutInflater.from(context);
         View view = inflater.inflate(R.layout.item_movie, parent, false);
@@ -49,8 +51,8 @@ public class MainMoviesAdapter extends RecyclerView.Adapter<MainMoviesAdapter.Mo
     }
 
     @Override
-    public void onBindViewHolder(MovieHolder holder, int position) {
-        Picasso.with(context).load(MoviesAPIContract.POSTERS_BASE_URL + movies.get(position).getThumbUrl())
+    public void onBindViewHolder(@NonNull MovieHolder holder, int position) {
+        Picasso.with(context).load(MoviesAPIContract.POSTERS_BASE_URL + movies.get(position).getPoster_path())
                 .placeholder(R.drawable.movie_placeholder).into(holder.imageView);
     }
 
