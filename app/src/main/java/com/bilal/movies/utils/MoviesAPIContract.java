@@ -13,6 +13,6 @@ public class MoviesAPIContract {
     public enum SORT_TYPES{
         top_rated,
         popular,
-        favorite
+        favorites
     }
 }

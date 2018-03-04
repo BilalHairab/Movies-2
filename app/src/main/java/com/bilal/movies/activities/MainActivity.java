@@ -1,6 +1,7 @@
 package com.bilal.movies.activities;
 
 import android.annotation.SuppressLint;
+import android.database.Cursor;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -10,19 +11,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
 import com.bilal.movies.R;
 import com.bilal.movies.adapters.MainMoviesAdapter;
+import com.bilal.movies.data.FavoriteContract;
 import com.bilal.movies.interfaces.MoviesCalls;
 import com.bilal.movies.models.Movie;
 import com.bilal.movies.models.Result;
 import com.bilal.movies.utils.MoviesAPIContract;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
@@ -73,23 +75,41 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             @Nullable
             @Override
             public List<Movie> loadInBackground() {
-                retrofit = new Retrofit.Builder()
-                        .baseUrl(MoviesAPIContract.MOVIES_BASE_URL)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build();
+                if (args.get(SORT) != MoviesAPIContract.SORT_TYPES.favorites) {
+                    retrofit = new Retrofit.Builder()
+                            .baseUrl(MoviesAPIContract.MOVIES_BASE_URL)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build();
 
-                MoviesCalls calls = retrofit.create(MoviesCalls.class);
-                Call<Result> call = calls.fetchMovies((MoviesAPIContract.SORT_TYPES) args.get(SORT), MoviesAPIContract.API_KEY_VALUE);
-                try {
-                    Result result = call.execute().body();
-                    if (result != null)
-                        return result.getResults();
-                    else
+                    MoviesCalls calls = retrofit.create(MoviesCalls.class);
+                    Call<Result> call = calls.fetchMovies((MoviesAPIContract.SORT_TYPES) args.get(SORT), MoviesAPIContract.API_KEY_VALUE);
+                    try {
+                        Result result = call.execute().body();
+                        if (result != null)
+                            return result.getResults();
+                        else
+                            return null;
+                    } catch (IOException e) {
+                        e.printStackTrace();
                         return null;
-                } catch (IOException e) {
-                    Log.e("errorRetrofit", e.getMessage());
-                    e.printStackTrace();
-                    return null;
+                    }
+                } else {
+                    List<Movie> movies = new ArrayList<>();
+                    Cursor cursor = getContentResolver().query(FavoriteContract.FavoriteEntry.BASE_CONTENT_URI,
+                            null, null, null, null);
+                    if (cursor != null)
+                        while (cursor.moveToNext()) {
+                            Movie movie = new Movie();
+                            movie.setId(cursor.getInt(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_ID)));
+                            movie.setTitle(cursor.getString(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_TITLE)));
+                            movie.setPoster_path(cursor.getString(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_MOVIE_POSTER)));
+                            movie.setVote_average(cursor.getDouble(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_USER_RATING)));
+                            movie.setOverview(cursor.getString(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_SYNOPSIS)));
+                            movie.setOverview(cursor.getString(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_SYNOPSIS)));
+                            movie.setRelease_date(cursor.getString(cursor.getColumnIndex(FavoriteContract.FavoriteEntry.COLUMN_RELEASE_DATE)));
+                            movies.add(movie);
+                        }
+                    return movies;
                 }
             }
         };
@@ -131,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 break;
             case R.id.action_sort_favorite:
                 setTitle(R.string.sort_favorite);
-//                loadMovies();
+                loadMovies(MoviesAPIContract.SORT_TYPES.favorites);
                 break;
             default:
                 break;

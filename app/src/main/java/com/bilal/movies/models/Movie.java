@@ -14,6 +14,10 @@ public class Movie implements Parcelable {
     private double vote_average, popularity;
     private int[] genre_ids;
 
+    public Movie() {
+
+    }
+
     private Movie(Parcel parcel) {
         this.id = parcel.readInt();
         this.title = parcel.readString();

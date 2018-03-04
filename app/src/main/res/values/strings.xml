@@ -5,5 +5,6 @@
     <string name="sort_popular">Most popular movies</string>
     <string name="sort_rated">Highest rate movies</string>
     <string name="sort_favorite">Favorite movies</string>
+    <string name="play_trailer">Play Trailer</string>
     <string name="released">Released: </string>
 </resources>
