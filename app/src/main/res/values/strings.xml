@@ -7,4 +7,10 @@
     <string name="sort_favorite">Favorite movies</string>
     <string name="play_trailer">Play Trailer</string>
     <string name="released">Released: </string>
+    <string name="insert_success">It\'s your favorite now! enjoy :)</string>
+    <string name="delete_success">unmarked as favorite!</string>
+    <string name="action_share">Share movie</string>
+    <string name="trailer">Trailer</string>
+    <string name="share_text">Wow! let\'s go to movies and see this together!\n</string>
+    <string name="share_title">Sharing is caring!</string>
 </resources>

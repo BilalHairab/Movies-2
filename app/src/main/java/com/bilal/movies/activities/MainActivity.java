@@ -20,12 +20,11 @@ import com.bilal.movies.adapters.MainMoviesAdapter;
 import com.bilal.movies.data.FavoriteContract;
 import com.bilal.movies.interfaces.MoviesCalls;
 import com.bilal.movies.models.Movie;
-import com.bilal.movies.models.Result;
+import com.bilal.movies.models.MovieResult;
 import com.bilal.movies.utils.MoviesAPIContract;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -33,20 +32,32 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<List<Movie>> {
+public class MainActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<ArrayList<Movie>> {
     @BindView(R.id.rv_movies)
     RecyclerView recyclerView;
 
     final static String SORT = "SORT_TYPE";
     static final int LOADER_ID = 7;
+    ArrayList<Movie> currentMovies = new ArrayList<>();
+    static final String MOVIES = "movies";
+    static final String TITLE = "title";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        setTitle(R.string.sort_popular);
-        loadMovies(MoviesAPIContract.SORT_TYPES.popular);
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES) && savedInstanceState.containsKey(TITLE)) {
+            setTitle(savedInstanceState.getString(TITLE));
+            currentMovies = savedInstanceState.getParcelableArrayList(MOVIES);
+            GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+            MainMoviesAdapter adapter = new MainMoviesAdapter(currentMovies);
+            recyclerView.setLayoutManager(layoutManager);
+            recyclerView.setAdapter(adapter);
+        } else {
+            setTitle(R.string.sort_popular);
+            loadMovies(MoviesAPIContract.SORT_TYPES.popular);
+        }
     }
 
     void loadMovies(MoviesAPIContract.SORT_TYPES sortType) {
@@ -63,8 +74,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     @NonNull
     @SuppressLint("StaticFieldLeak")
     @Override
-    public Loader<List<Movie>> onCreateLoader(int id, final Bundle args) {
-        return new AsyncTaskLoader<List<Movie>>(this) {
+    public Loader<ArrayList<Movie>> onCreateLoader(int id, final Bundle args) {
+        return new AsyncTaskLoader<ArrayList<Movie>>(this) {
             Retrofit retrofit;
 
             @Override
@@ -74,7 +85,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
 
             @Nullable
             @Override
-            public List<Movie> loadInBackground() {
+            public ArrayList<Movie> loadInBackground() {
                 if (args.get(SORT) != MoviesAPIContract.SORT_TYPES.favorites) {
                     retrofit = new Retrofit.Builder()
                             .baseUrl(MoviesAPIContract.MOVIES_BASE_URL)
@@ -82,19 +93,20 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                             .build();
 
                     MoviesCalls calls = retrofit.create(MoviesCalls.class);
-                    Call<Result> call = calls.fetchMovies((MoviesAPIContract.SORT_TYPES) args.get(SORT), MoviesAPIContract.API_KEY_VALUE);
+                    Call<MovieResult> call = calls.fetchMovies((MoviesAPIContract.SORT_TYPES) args.get(SORT), MoviesAPIContract.API_KEY_VALUE);
                     try {
-                        Result result = call.execute().body();
-                        if (result != null)
+                        MovieResult result = call.execute().body();
+                        if (result != null) {
                             return result.getResults();
-                        else
+//                            return (ArrayList<Movie>) result.getResults();
+                        } else
                             return null;
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
                     }
                 } else {
-                    List<Movie> movies = new ArrayList<>();
+                    ArrayList<Movie> movies = new ArrayList<>();
                     Cursor cursor = getContentResolver().query(FavoriteContract.FavoriteEntry.BASE_CONTENT_URI,
                             null, null, null, null);
                     if (cursor != null)
@@ -116,11 +128,12 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onLoadFinished(@NonNull Loader<List<Movie>> loader, List<Movie> data) {
+    public void onLoadFinished(@NonNull Loader<ArrayList<Movie>> loader, ArrayList<Movie> data) {
         if (data == null || data.size() == 0) {
             Toast.makeText(this, R.string.error_loading, Toast.LENGTH_LONG).show();
             return;
         }
+        currentMovies = data;
         GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
         MainMoviesAdapter adapter = new MainMoviesAdapter(data);
         recyclerView.setLayoutManager(layoutManager);
@@ -128,7 +141,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     }
 
     @Override
-    public void onLoaderReset(@NonNull Loader<List<Movie>> loader) {
+    public void onLoaderReset(@NonNull Loader<ArrayList<Movie>> loader) {
 
     }
 
@@ -157,5 +170,18 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList(MOVIES, currentMovies);
+        outState.putString(TITLE, getTitle().toString());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+
     }
 }

@@ -54,15 +54,27 @@ public class FavoritesProvider extends ContentProvider {
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
         final SQLiteDatabase sqLiteDatabase = favoriteDbHelper.getWritableDatabase();
         int match = matcher.match(uri);
+        long id;
         switch (match) {
             case FAVORITES_CODE:
-                long id = sqLiteDatabase.delete(TABLE_NAME, selection, selectionArgs);
+                id = sqLiteDatabase.delete(TABLE_NAME, selection, selectionArgs);
                 if (id > 0) {
                     getContext().getContentResolver().notifyChange(uri, null);
                     return (int) id;
                 } else {
-                    throw new SQLException("Failed to insert row into " + uri);
+                    throw new SQLException("Failed to delete row into " + uri);
                 }
+            case SINGLE_FAVORITE_CODE:
+                String mSelection = "id=?";
+                String[] mSelectionArgs = new String[]{uri.getPathSegments().get(1)};
+                id = sqLiteDatabase.delete(TABLE_NAME, mSelection, mSelectionArgs);
+                if (id > 0) {
+                    getContext().getContentResolver().notifyChange(uri, null);
+                    return (int) id;
+                } else {
+                    throw new SQLException("Failed to delete row into " + uri);
+                }
+
             default:
                 throw new UnsupportedOperationException("unknown uri" + uri);
         }
@@ -116,7 +128,7 @@ public class FavoritesProvider extends ContentProvider {
                     getContext().getContentResolver().notifyChange(uri, null);
                     return (int) id;
                 } else {
-                    throw new SQLException("Failed to insert row into " + uri);
+                    throw new SQLException("Failed to update row into " + uri);
                 }
             default:
                 throw new UnsupportedOperationException("unknown uri" + uri);
@@ -133,7 +145,7 @@ public class FavoritesProvider extends ContentProvider {
     private static UriMatcher buildMatcher() {
         UriMatcher matcher = new UriMatcher(UriMatcher.NO_MATCH);
         matcher.addURI(AUTHORITY, TABLE_NAME, FAVORITES_CODE);
-        matcher.addURI(AUTHORITY, TABLE_NAME +"/#", SINGLE_FAVORITE_CODE);
+        matcher.addURI(AUTHORITY, TABLE_NAME + "/#", SINGLE_FAVORITE_CODE);
         return matcher;
     }
 }
