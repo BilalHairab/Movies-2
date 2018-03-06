@@ -4,6 +4,7 @@ import android.content.ContentUris;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ShareCompat;
@@ -11,10 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -52,6 +55,18 @@ import static com.bilal.movies.data.FavoriteContract.FavoriteEntry.COLUMN_USER_R
 public class MovieDetailActivity extends AppCompatActivity {
     Movie movie;
     String firstTrailerUri;
+    Parcelable trailersState, reviewsState;
+    static final String TRAILERS_STATE = "trailers_state";
+    static final String TRAILERS = "trailers";
+    static final String REVIEWS = "reviews";
+    static final String REVIEWS_STATE = "reviews_state";
+    static final String SCROLL_STATE = "scroll_state";
+
+    LinearLayoutManager trailerLayoutManager;
+    LinearLayoutManager reviewLayoutManager;
+    boolean previouslyLoaded = false;
+    ArrayList<Trailer> trailers = new ArrayList<>();
+    ArrayList<Review> reviews = new ArrayList<>();
 
     @BindView(R.id.tv_released)
     TextView tvReleased;
@@ -65,6 +80,9 @@ public class MovieDetailActivity extends AppCompatActivity {
     @BindView(R.id.im_movie_poster)
     ImageView poster;
 
+    @BindView(R.id.scrollView)
+    ScrollView scrollView;
+
     @BindView(R.id.fab)
     FloatingActionButton fab;
 
@@ -76,6 +94,7 @@ public class MovieDetailActivity extends AppCompatActivity {
     @BindView(R.id.rv_trailers)
     RecyclerView recyclerTrailers;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,9 +103,38 @@ public class MovieDetailActivity extends AppCompatActivity {
         if (getIntent().hasExtra(MoviesAPIContract.MOVIE)) {
             //noinspection ConstantConditions
             movie = getIntent().getExtras().getParcelable(MoviesAPIContract.MOVIE);
-        } else if (savedInstanceState.containsKey(MoviesAPIContract.MOVIE))
+        }
+        if (savedInstanceState != null && savedInstanceState.containsKey(MoviesAPIContract.MOVIE)
+                && savedInstanceState.containsKey(REVIEWS_STATE) && savedInstanceState.containsKey(TRAILERS_STATE)
+                && savedInstanceState.containsKey(SCROLL_STATE)) {
+            Log.e("lifecycleState", "onCreate (saved)");
             movie = savedInstanceState.getParcelable(MoviesAPIContract.MOVIE);
-        else finish();
+            trailersState = savedInstanceState.getParcelable(TRAILERS_STATE);
+            reviewsState = savedInstanceState.getParcelable(REVIEWS_STATE);
+            if (savedInstanceState.containsKey(TRAILERS) && savedInstanceState.containsKey(REVIEWS)) {
+                trailers = savedInstanceState.getParcelableArrayList(TRAILERS);
+                firstTrailerUri = trailers.get(0).getYouTubeKey();
+                trailerLayoutManager = new LinearLayoutManager(MovieDetailActivity.this,
+                        LinearLayoutManager.VERTICAL, false);
+                TrailersAdapter adapter = new TrailersAdapter(trailers);
+                recyclerTrailers.setLayoutManager(trailerLayoutManager);
+                recyclerTrailers.setAdapter(adapter);
+                if (trailersState != null)
+                    trailerLayoutManager.onRestoreInstanceState(trailersState);
+
+                reviews = savedInstanceState.getParcelableArrayList(REVIEWS);
+                reviewLayoutManager = new LinearLayoutManager(MovieDetailActivity.this,
+                        LinearLayoutManager.VERTICAL, false);
+                ReviewsAdapter adapter1 = new ReviewsAdapter(reviews);
+                recyclerReviews.setLayoutManager(reviewLayoutManager);
+                recyclerReviews.setAdapter(adapter1);
+                if (reviewsState != null)
+                    reviewLayoutManager.onRestoreInstanceState(reviewsState);
+                previouslyLoaded = true;
+            }
+            int[] scrollCO = savedInstanceState.getIntArray(SCROLL_STATE);
+            scrollView.scrollTo(scrollCO[0], scrollCO[1]);
+        }
     }
 
     @Override
@@ -120,53 +168,72 @@ public class MovieDetailActivity extends AppCompatActivity {
                     .addConverterFactory(GsonConverterFactory.create())
                     .build();
             MoviesCalls calls = retrofit.create(MoviesCalls.class);
-            Call<TrailerResult> trailerCall = calls.fetchTrailers(movie.getId(), MoviesAPIContract.API_KEY_VALUE);
-            trailerCall.enqueue(new Callback<TrailerResult>() {
-                @Override
-                public void onResponse(@NonNull Call<TrailerResult> call, @NonNull Response<TrailerResult> response) {
-                    TrailerResult body = response.body();
-                    if (body != null) {
-                        ArrayList<Trailer> trailers = body.getResults();
-                        firstTrailerUri = trailers.get(0).getYouTubeKey();
-                        LinearLayoutManager layoutManager = new LinearLayoutManager(MovieDetailActivity.this,
-                                LinearLayoutManager.VERTICAL, false);
-                        TrailersAdapter adapter = new TrailersAdapter(trailers);
-                        recyclerTrailers.setLayoutManager(layoutManager);
-                        recyclerTrailers.setAdapter(adapter);
+
+            if (trailers.size() <= 0) {
+                Call<TrailerResult> trailerCall = calls.fetchTrailers(movie.getId(), MoviesAPIContract.API_KEY_VALUE);
+                trailerCall.enqueue(new Callback<TrailerResult>() {
+                    @Override
+                    public void onResponse(@NonNull Call<TrailerResult> call, @NonNull Response<TrailerResult> response) {
+                        TrailerResult body = response.body();
+                        if (body != null) {
+                            trailers = body.getResults();
+                            firstTrailerUri = trailers.get(0).getYouTubeKey();
+                            trailerLayoutManager = new LinearLayoutManager(MovieDetailActivity.this,
+                                    LinearLayoutManager.VERTICAL, false);
+                            TrailersAdapter adapter = new TrailersAdapter(trailers);
+                            recyclerTrailers.setLayoutManager(trailerLayoutManager);
+                            recyclerTrailers.setAdapter(adapter);
+                            if (trailersState != null)
+                                trailerLayoutManager.onRestoreInstanceState(trailersState);
+
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(@NonNull Call<TrailerResult> call, @NonNull Throwable t) {
+                    @Override
+                    public void onFailure(@NonNull Call<TrailerResult> call, @NonNull Throwable t) {
 
-                }
-            });
-            Call<ReviewResult> reviewCall = calls.fetchReviews(movie.getId(), MoviesAPIContract.API_KEY_VALUE);
-            reviewCall.enqueue(new Callback<ReviewResult>() {
-                @Override
-                public void onResponse(@NonNull Call<ReviewResult> call, @NonNull Response<ReviewResult> response) {
-                    ReviewResult body = response.body();
-                    if (body != null) {
-                        ArrayList<Review> reviews = body.getResults();
-                        LinearLayoutManager layoutManager = new LinearLayoutManager(MovieDetailActivity.this,
-                                LinearLayoutManager.VERTICAL, false);
-                        ReviewsAdapter adapter = new ReviewsAdapter(reviews);
-                        recyclerReviews.setLayoutManager(layoutManager);
-                        recyclerReviews.setAdapter(adapter);
                     }
-                }
+                });
+            }
+            if (reviews.size() <= 0) {
+                Call<ReviewResult> reviewCall = calls.fetchReviews(movie.getId(), MoviesAPIContract.API_KEY_VALUE);
+                reviewCall.enqueue(new Callback<ReviewResult>() {
+                    @Override
+                    public void onResponse(@NonNull Call<ReviewResult> call, @NonNull Response<ReviewResult> response) {
+                        ReviewResult body = response.body();
+                        if (body != null) {
+                            reviews = body.getResults();
+                            reviewLayoutManager = new LinearLayoutManager(MovieDetailActivity.this,
+                                    LinearLayoutManager.VERTICAL, false);
+                            ReviewsAdapter adapter = new ReviewsAdapter(reviews);
+                            recyclerReviews.setLayoutManager(reviewLayoutManager);
+                            recyclerReviews.setAdapter(adapter);
+                            if (reviewsState != null)
+                                reviewLayoutManager.onRestoreInstanceState(reviewsState);
+                        }
+                    }
 
-                @Override
-                public void onFailure(@NonNull Call<ReviewResult> call, @NonNull Throwable t) {
+                    @Override
+                    public void onFailure(@NonNull Call<ReviewResult> call, @NonNull Throwable t) {
 
-                }
-            });
+                    }
+                });
+            }
         }
     }
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(MoviesAPIContract.MOVIE, movie);
+        if (trailerLayoutManager != null) {
+            outState.putParcelable(TRAILERS_STATE, trailerLayoutManager.onSaveInstanceState());
+            outState.putParcelableArrayList(TRAILERS, trailers);
+        }
+        if (reviewLayoutManager != null) {
+            outState.putParcelable(REVIEWS_STATE, reviewLayoutManager.onSaveInstanceState());
+            outState.putParcelableArrayList(REVIEWS, reviews);
+        }
+        outState.putIntArray(SCROLL_STATE, new int[]{scrollView.getScrollX(), scrollView.getScrollY()});
         super.onSaveInstanceState(outState);
     }
 

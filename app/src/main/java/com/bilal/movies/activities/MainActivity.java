@@ -2,6 +2,7 @@ package com.bilal.movies.activities;
 
 import android.annotation.SuppressLint;
 import android.database.Cursor;
+import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.LoaderManager;
@@ -41,19 +42,23 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     ArrayList<Movie> currentMovies = new ArrayList<>();
     static final String MOVIES = "movies";
     static final String TITLE = "title";
+    static final String MOVIES_STATE = "movies_state";
+    GridLayoutManager layoutManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         ButterKnife.bind(this);
-        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES) && savedInstanceState.containsKey(TITLE)) {
+        if (savedInstanceState != null && savedInstanceState.containsKey(MOVIES) && savedInstanceState.containsKey(TITLE)
+                && savedInstanceState.containsKey(MOVIES_STATE)) {
             setTitle(savedInstanceState.getString(TITLE));
             currentMovies = savedInstanceState.getParcelableArrayList(MOVIES);
-            GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+            layoutManager = new GridLayoutManager(this, 2);
             MainMoviesAdapter adapter = new MainMoviesAdapter(currentMovies);
             recyclerView.setLayoutManager(layoutManager);
             recyclerView.setAdapter(adapter);
+            layoutManager.onRestoreInstanceState(savedInstanceState.getParcelable(MOVIES_STATE));
         } else {
             setTitle(R.string.sort_popular);
             loadMovies(MoviesAPIContract.SORT_TYPES.popular);
@@ -134,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
             return;
         }
         currentMovies = data;
-        GridLayoutManager layoutManager = new GridLayoutManager(this, 2);
+        layoutManager = new GridLayoutManager(this, 2);
         MainMoviesAdapter adapter = new MainMoviesAdapter(data);
         recyclerView.setLayoutManager(layoutManager);
         recyclerView.setAdapter(adapter);
@@ -176,12 +181,8 @@ public class MainActivity extends AppCompatActivity implements LoaderManager.Loa
     public void onSaveInstanceState(Bundle outState) {
         outState.putParcelableArrayList(MOVIES, currentMovies);
         outState.putString(TITLE, getTitle().toString());
+        if (layoutManager != null)
+            outState.putParcelable(MOVIES_STATE, layoutManager.onSaveInstanceState());
         super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-
     }
 }
