@@ -12,7 +12,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -107,7 +106,6 @@ public class MovieDetailActivity extends AppCompatActivity {
         if (savedInstanceState != null && savedInstanceState.containsKey(MoviesAPIContract.MOVIE)
                 && savedInstanceState.containsKey(REVIEWS_STATE) && savedInstanceState.containsKey(TRAILERS_STATE)
                 && savedInstanceState.containsKey(SCROLL_STATE)) {
-            Log.e("lifecycleState", "onCreate (saved)");
             movie = savedInstanceState.getParcelable(MoviesAPIContract.MOVIE);
             trailersState = savedInstanceState.getParcelable(TRAILERS_STATE);
             reviewsState = savedInstanceState.getParcelable(REVIEWS_STATE);
